@@ -1,22 +1,28 @@
-import React, { useState } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { addTodo, removeTodo, toggleTodo } from "../features/todos/todosSlice";
+import React, { useReducer, useState } from "react";
 
 const TodoList = () => {
+  const [todos, dispatch] = useReducer(myReducer, []);
   const [input, setInput] = useState("");
-  const todos = useSelector((state) => state.todos.todos);
-  const dispatch = useDispatch();
 
   const handleAddTodo = () => {
-    dispatch(addTodo(input));
+    dispatch({
+      type: 'added',
+      text: input,
+    })
   };
 
   const handleRemoveTodo = (id) => {
-    dispatch(removeTodo(id));
+    dispatch({
+      type: 'removed',
+      id: id,
+    })
   };
 
   const handleToggleTodo = (id) => {
-    dispatch(toggleTodo(id));
+    dispatch({
+      type: 'toggled',
+      id: id,
+    })
   };
 
   return (
@@ -44,3 +50,26 @@ const TodoList = () => {
 };
 
 export default TodoList;
+
+function myReducer(todos, action) {
+  switch(action.type) {
+    case 'added': {
+      return [...todos, {
+        id: crypto.randomUUID(),
+        text: action.text,
+        completed: false,
+      }];
+    }
+    case 'removed': {
+      return todos.filter((todo) => todo.id !== action.id);
+    }
+    case 'toggled': {
+      return todos.map((todo) => 
+        todo.id === action.id ? {...todo, completed: !todo.completed} : todo
+      );
+    }
+    default: {
+      throw Error('Unknown action: ' + action.type);
+    }
+  }
+}
